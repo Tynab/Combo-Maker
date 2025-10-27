@@ -11,10 +11,14 @@ public partial class Player : MonoBehaviour
         var x = GetAxis(AXIS_HORIZONTAL);
         var vector = x * facing;
 
-        Forward(vector);
-        Backward(vector);
+        if (_movingFlag)
+        {
+            Forward(vector);
+            Backward(vector);
 
-        Moving(x);
+            Moving(x);
+        }
+
         Flash(x);
     }
 
@@ -27,8 +31,7 @@ public partial class Player : MonoBehaviour
 
         if (GetKeyDown(L) && _flashVector is not 0 && !FlashVFX.activeInHierarchy)
         {
-            _flashTime = .25f;
-            _flashingFlag = true;
+            FlashFlagOn();
         }
 
         if (_flashingFlag)
@@ -130,8 +133,7 @@ public partial class Player : MonoBehaviour
             PlayerAnimator.SetTrigger(_swingHash);
             CameraEffect.ShakeHorizontal(1, .5f, .4f);
 
-            _slideTime = SLIDE_TIME;
-            _swingFlipingFlag = true;
+            SwingFlipFlagOn();
         }
     }
 
@@ -171,9 +173,7 @@ public partial class Player : MonoBehaviour
             PlayerAnimator.SetTrigger(_sSKillHash);
             ChargeVFX.Active();
 
-            _chargeTime = 0;
-            _chantTime = 1;
-            _chantingFlag = true;
+            ChantFlagOn();
 
             CameraEffect.ShakeBoth(.5f, 5);
         }

@@ -31,6 +31,7 @@ public partial class Player : MonoBehaviour
 
     private bool _isCameraMoving = false;
 
+    private bool _movingFlag = true;
     private bool _flashingFlag = false;
     private bool _swingFlipingFlag = false;
     private bool _chantingFlag = false;

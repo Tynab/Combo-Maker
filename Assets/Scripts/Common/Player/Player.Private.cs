@@ -42,8 +42,7 @@ public partial class Player : MonoBehaviour
             if (_swingFlipingFlag)
             {
                 Flipping();
-
-                _swingFlipingFlag = false;
+                SwingFlipFlagOff();
             }
         }
     }
@@ -62,8 +61,7 @@ public partial class Player : MonoBehaviour
         {
             FlashVFX.Deactive();
 
-            _flashVector = 0;
-            _flashingFlag = false;
+            FlashFlagOff();
         }
     }
 
@@ -75,13 +73,11 @@ public partial class Player : MonoBehaviour
         }
         else
         {
-            _chantingFlag = false;
+            ChantFlagOff();
 
             ChargeVFX.Deactive();
 
-            _jumpTime = .5f;
-            _peakJumpTime = .25f;
-            _jumpingFlag = true;
+            JumpFlagOn();
         }
     }
 
@@ -96,14 +92,13 @@ public partial class Player : MonoBehaviour
         }
         else
         {
-            _jumpingFlag = false;
+            JumpFlagOff();
 
             CameraEffect.ShakeVertical(3, 2);
             CameraEffect.Earthquake(.5f, .5f, 5, 0);
             BladeVFX.Active();
 
-            _bladeTime = .5f;
-            _bladingFlag = true;
+            BladeFlagOn();
         }
     }
 
@@ -117,7 +112,7 @@ public partial class Player : MonoBehaviour
         }
         else
         {
-            _bladingFlag = false;
+            BladeFlagOff();
 
             BladeVFX.Deactive();
             BladeVFX.ResetPositionAndRotation(new Vector3(0, .8f));
