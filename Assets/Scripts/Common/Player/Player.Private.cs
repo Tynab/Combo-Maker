@@ -3,7 +3,36 @@ using static UnityEngine.Time;
 
 public partial class Player : MonoBehaviour
 {
+    private void GetPlayerEvent(AnimatorStateInfo animatorStateInfo) => CurrentPlayerEvent = animatorStateInfo.IsName(IDLE_ANIMATION_NAME)
+        ? PlayerEvent.Idle
+        : animatorStateInfo.IsName(FORWARD_ANIMATION_NAME)
+        ? PlayerEvent.Forward
+        : animatorStateInfo.IsName(BACKWARD_ANIMATION_NAME)
+        ? PlayerEvent.Backward
+        : animatorStateInfo.IsName(THRUST_ANIMATION_NAME)
+            ? animatorStateInfo.normalizedTime >= THRUST_SWING_POINT ? PlayerEvent.ThrustSwing : PlayerEvent.Thrush
+        : animatorStateInfo.IsName(SWING_ANIMATION_NAME)
+            ? animatorStateInfo.normalizedTime >= SWING_SKILL_POINT ? PlayerEvent.SwingSkill
+            : animatorStateInfo.normalizedTime >= SWING_MISSILE_POINT ? PlayerEvent.SwingMissile : PlayerEvent.Swing
+        : animatorStateInfo.IsName(SKILL_ANIMATION_NAME)
+            ? animatorStateInfo.normalizedTime >= SKILL_SPELL_POINT ? PlayerEvent.SkillSpell : PlayerEvent.Skill
+        : animatorStateInfo.IsName(SPELL_ANIMATION_NAME)
+        ? PlayerEvent.Spell
+        : animatorStateInfo.IsName(CHANT_ANIMATION_NAME)
+        ? PlayerEvent.Chant
+        : animatorStateInfo.IsName(GUARD_ANIMATION_NAME)
+        ? PlayerEvent.Guard
+        : animatorStateInfo.IsName(TAUNT_ANIMATION_NAME)
+        ? PlayerEvent.Taunt
+        : animatorStateInfo.IsName(DAMAGE_ANIMATION_NAME)
+        ? PlayerEvent.Damage
+        : animatorStateInfo.IsName(DYING_ANIMATION_NAME)
+        ? PlayerEvent.Dying
+        : animatorStateInfo.IsName(DEAD_ANIMATION_NAME) ? PlayerEvent.Dead : PlayerEvent.None;
+
     private void Moving(float x) => _rb2d.linearVelocityX = x * SpeedMove;
+
+    private void Flashing(float x) => transform.position = new Vector3(transform.position.x + x / FLASH_SPEED, transform.position.y);
 
     private int Facing() => PlayerSR.flipX ? 1 : -1;
 
@@ -44,24 +73,6 @@ public partial class Player : MonoBehaviour
                 Flipping();
                 SwingFlipFlagOff();
             }
-        }
-    }
-
-    private void Flashing(float x)
-    {
-        FlashVFX.Active();
-
-        if (_flashTime > 0)
-        {
-            _flashTime -= deltaTime;
-
-            transform.position = new Vector3(transform.position.x + x / FLASH_SPEED, transform.position.y);
-        }
-        else
-        {
-            FlashVFX.Deactive();
-
-            FlashFlagOff();
         }
     }
 

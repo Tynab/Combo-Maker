@@ -1,4 +1,6 @@
 using UnityEngine;
+using static Common;
+using static UnityEngine.Input;
 
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(Rigidbody2D))]
@@ -16,9 +18,44 @@ public partial class Player : MonoBehaviour
 
     private void Update()
     {
-        var facing = Facing();
+        var animatorStateInfo = PlayerAnimator.GetCurrentAnimatorStateInfo(0);
 
-        Movement(facing);
+        if (CurrentPlayerEvent is not PlayerEvent.Slide and not PlayerEvent.Flash and not PlayerEvent.Jump)
+        {
+            GetPlayerEvent(animatorStateInfo);
+        }
+
+        var x = GetAxis(AXIS_HORIZONTAL);
+        var facing = Facing();
+        var vector = x * facing;
+
+        if (CurrentPlayerEvent is PlayerEvent.Idle or PlayerEvent.Forward or PlayerEvent.Backward)
+        {
+            Movement(x, vector);
+        }
+
+        if (CurrentPlayerEvent is PlayerEvent.Idle
+            or PlayerEvent.Forward
+            or PlayerEvent.Backward
+            or PlayerEvent.Thrush
+            or PlayerEvent.Swing
+            or PlayerEvent.Missile
+            or PlayerEvent.Skill
+            or PlayerEvent.Spell
+            or PlayerEvent.ThrustSwing
+            or PlayerEvent.SwingMissile
+            or PlayerEvent.SwingSkill
+            or PlayerEvent.SkillSpell
+            or PlayerEvent.Jump)
+        {
+            FlashCheck(x);
+        }
+
+        if (CurrentPlayerEvent is PlayerEvent.Flash)
+        {
+            Flash(_flashVector);
+        }
+
         Combo(facing);
         SSkill(facing);
     }

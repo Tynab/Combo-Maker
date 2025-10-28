@@ -2,12 +2,19 @@
 
 public partial class Player : MonoBehaviour
 {
-    private const string WAIT_ANIMATION_NAME = "Wait";
-    private const string FRONTSTEP_ANIMATION_NAME = "Frontstep";
-    private const string EVADE_ANIMATION_NAME = "Evade";
+    private const string IDLE_ANIMATION_NAME = "Wait";
+    private const string FORWARD_ANIMATION_NAME = "Frontstep";
+    private const string BACKWARD_ANIMATION_NAME = "Evade";
     private const string THRUST_ANIMATION_NAME = "Thrust";
     private const string SWING_ANIMATION_NAME = "Swing";
     private const string SKILL_ANIMATION_NAME = "Skill";
+    private const string SPELL_ANIMATION_NAME = "Spell";
+    private const string CHANT_ANIMATION_NAME = "Chant";
+    private const string GUARD_ANIMATION_NAME = "Guard";
+    private const string TAUNT_ANIMATION_NAME = "Taunt";
+    private const string DAMAGE_ANIMATION_NAME = "Damage";
+    private const string DYING_ANIMATION_NAME = "Dying";
+    private const string DEAD_ANIMATION_NAME = "Dead";
 
     private const float THRUST_SWING_POINT = .5f;
     private const float SWING_MISSILE_POINT = .5f;

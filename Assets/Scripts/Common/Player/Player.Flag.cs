@@ -1,26 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
 public partial class Player : MonoBehaviour
 {
-    private void FlashFlagOn()
-    {
-        _flashTime = .25f;
-        _flashingFlag = true;
-        _movingFlag = false;
-    }
-
-    private void FlashFlagOff()
-    {
-        _flashVector = 0;
-        _flashingFlag = false;
-        _movingFlag = true;
-    }
-
     private void SwingFlipFlagOn()
     {
         _slideTime = SLIDE_TIME;

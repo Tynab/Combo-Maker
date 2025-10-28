@@ -19,6 +19,8 @@ public partial class Player : MonoBehaviour
     private SpriteRenderer _chargeSr;
     private SpriteRenderer _bladeSr;
 
+    private PlayerEvent CurrentPlayerEvent = PlayerEvent.None;
+
     private float _flashTime = 0;
     private float _slideTime = 0;
     private float _chargeTime = 0;

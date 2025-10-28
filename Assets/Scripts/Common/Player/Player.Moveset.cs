@@ -1,42 +1,47 @@
 ﻿using UnityEngine;
-using static Common;
 using static UnityEngine.Input;
 using static UnityEngine.KeyCode;
 using static UnityEngine.Time;
 
 public partial class Player : MonoBehaviour
 {
-    private void Movement(int facing)
+    private void Movement(float x, float vector)
     {
-        var x = GetAxis(AXIS_HORIZONTAL);
-        var vector = x * facing;
+        Forward(vector);
+        Backward(vector);
 
-        if (_movingFlag)
+        Moving(x);
+    }
+
+    private void FlashCheck(float x)
+    {
+        _flashVector = x > 0 ? 1 : x < 0 ? -1 : 0;
+
+        if (GetKeyDown(L) && _flashVector is not 0)
         {
-            Forward(vector);
-            Backward(vector);
+            CurrentPlayerEvent = PlayerEvent.Flash;
 
-            Moving(x);
+            _flashTime = .25f;
         }
-
-        Flash(x);
     }
 
     private void Flash(float x)
     {
-        if (!_flashingFlag)
-        {
-            _flashVector = x > 0 ? 1 : x < 0 ? -1 : 0;
-        }
+        FlashVFX.Active();
 
-        if (GetKeyDown(L) && _flashVector is not 0 && !FlashVFX.activeInHierarchy)
+        if (_flashTime > 0)
         {
-            FlashFlagOn();
-        }
+            _flashTime -= deltaTime;
 
-        if (_flashingFlag)
+            Flashing(x);
+        }
+        else
         {
-            Flashing(_flashVector);
+            FlashVFX.Deactive();
+
+            CurrentPlayerEvent = _flashVector > 0 ? PlayerEvent.Forward : _flashVector < 0 ? PlayerEvent.Backward : PlayerEvent.Idle;
+
+            _flashVector = 0;
         }
     }
 
@@ -46,7 +51,7 @@ public partial class Player : MonoBehaviour
         {
             var animatorStateInfo = PlayerAnimator.GetCurrentAnimatorStateInfo(0);
 
-            Thrust(animatorStateInfo);
+            Thrust();
             Swing(animatorStateInfo);
             Missile(animatorStateInfo);
             Skill(animatorStateInfo);
@@ -117,9 +122,9 @@ public partial class Player : MonoBehaviour
         }
     }
 
-    private void Thrust(AnimatorStateInfo animatorStateInfo)
+    private void Thrust()
     {
-        if (animatorStateInfo.IsName(EVADE_ANIMATION_NAME) || animatorStateInfo.IsName(WAIT_ANIMATION_NAME) || animatorStateInfo.IsName(FRONTSTEP_ANIMATION_NAME))
+        if (CurrentPlayerEvent is PlayerEvent.Idle or PlayerEvent.Forward or PlayerEvent.Backward)
         {
             PlayerAnimator.SetTrigger(_thrustHash);
             CameraEffect.ShakeHorizontal(1, .5f, .4f);
