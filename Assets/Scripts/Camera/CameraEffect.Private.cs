@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using static Common;
 using static UnityEngine.AnimationCurve;
 using static UnityEngine.Mathf;
 using static UnityEngine.Quaternion;
@@ -11,7 +12,7 @@ public partial class CameraEffect : MonoBehaviour
 {
     private IEnumerator ShakeRoutine(float amp, float dur, float freq, ShakeAxis axis, float rotAmpDeg, float delay)
     {
-        if (delay > 0f)
+        if (delay > 0)
         {
             yield return new WaitForSecondsRealtime(delay);
         }
@@ -30,12 +31,12 @@ public partial class CameraEffect : MonoBehaviour
             var nx = PerlinNoise(seedX, time * freq) * 2 - 1;
             var ny = PerlinNoise(seedY, time * freq) * 2 - 1;
 
-            if (axis is ShakeAxis.Horizontal or ShakeAxis.Both)
+            if (IsIn(axis, ShakeAxis.Horizontal, ShakeAxis.Both))
             {
                 p.x += nx * amp * env;
             }
 
-            if (axis is ShakeAxis.Vertical or ShakeAxis.Both)
+            if (IsIn(axis, ShakeAxis.Vertical, ShakeAxis.Both))
             {
                 p.y += ny * amp * env;
             }
@@ -64,7 +65,7 @@ public partial class CameraEffect : MonoBehaviour
 
     private IEnumerator EarthquakeRoutine(float dur, float amp, float freq, int afterShockCount, float delay)
     {
-        if (delay > 0f)
+        if (delay > 0)
         {
             yield return new WaitForSecondsRealtime(delay);
         }
@@ -187,7 +188,7 @@ public partial class CameraEffect : MonoBehaviour
 
     private IEnumerator DriveAmpOverTime(float dur, float targetAmp, float freq, AnimationCurve curve01)
     {
-        if (dur <= 0f)
+        if (dur <= 0)
         {
             yield break;
         }

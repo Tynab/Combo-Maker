@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using static Common;
 using static UnityEngine.Input;
 using static UnityEngine.KeyCode;
 using static UnityEngine.Time;
@@ -7,41 +8,56 @@ public partial class Player : MonoBehaviour
 {
     private void Movement(float x, float vector)
     {
-        Forward(vector);
-        Backward(vector);
-
-        Moving(x);
-    }
-
-    private void FlashCheck(float x)
-    {
-        _flashVector = x > 0 ? 1 : x < 0 ? -1 : 0;
-
-        if (GetKeyDown(L) && _flashVector is not 0)
+        if (IsIn(CurrentPlayerEvent, PlayerEvent.Idle, PlayerEvent.Forward, PlayerEvent.Backward))
         {
-            CurrentPlayerEvent = PlayerEvent.Flash;
-
-            _flashTime = .25f;
+            SetMove(vector);
+            Moving(x);
         }
     }
 
     private void Flash(float x)
     {
-        FlashVFX.Active();
-
-        if (_flashTime > 0)
+        if (IsIn(CurrentPlayerEvent,
+            PlayerEvent.Idle,
+            PlayerEvent.Forward,
+            PlayerEvent.Backward,
+            PlayerEvent.Thrush,
+            PlayerEvent.Swing,
+            PlayerEvent.Missile,
+            PlayerEvent.Skill,
+            PlayerEvent.Spell,
+            PlayerEvent.ThrustSwing,
+            PlayerEvent.SwingMissile,
+            PlayerEvent.SwingSkill,
+            PlayerEvent.SkillSpell,
+            PlayerEvent.Jump))
         {
-            _flashTime -= deltaTime;
+            _flashVector = x > 0 ? VECTOR_RIGHT : x < 0 ? VECTOR_LEFT : 0;
 
-            Flashing(x);
+            if (GetKeyDown(L) && _flashVector is not 0)
+            {
+                CurrentPlayerEvent = PlayerEvent.Flash;
+
+                _flashTime = FLASH_TIME;
+            }
         }
-        else
+
+        if (CurrentPlayerEvent is PlayerEvent.Flash)
         {
-            FlashVFX.Deactive();
+            FlashVFX.Active();
 
-            CurrentPlayerEvent = _flashVector > 0 ? PlayerEvent.Forward : _flashVector < 0 ? PlayerEvent.Backward : PlayerEvent.Idle;
+            if (TickDown(ref _flashTime))
+            {
+                Flashing(x);
+            }
+            else
+            {
+                FlashVFX.Deactive();
 
-            _flashVector = 0;
+                CurrentPlayerEvent = _flashVector > 0 ? PlayerEvent.Forward : _flashVector < 0 ? PlayerEvent.Backward : PlayerEvent.Idle;
+
+                _flashVector = 0;
+            }
         }
     }
 
@@ -49,13 +65,11 @@ public partial class Player : MonoBehaviour
     {
         if (GetKeyDown(J))
         {
-            var animatorStateInfo = PlayerAnimator.GetCurrentAnimatorStateInfo(0);
-
             Thrust();
-            Swing(animatorStateInfo);
-            Missile(animatorStateInfo);
-            Skill(animatorStateInfo);
-            Spell(animatorStateInfo);
+            Swing();
+            Missile();
+            Skill();
+            Spell();
         }
 
         SlidingAndFlipping(facing);
@@ -73,12 +87,12 @@ public partial class Player : MonoBehaviour
             Chant();
         }
 
-        if (_chantingFlag)
+        if (CurrentPlayerEvent is PlayerEvent.Chant)
         {
-            Chanting(facing);
+            Chanting();
         }
 
-        if (_jumpingFlag)
+        if (CurrentPlayerEvent is PlayerEvent.Jump)
         {
             Jumping(facing);
 
@@ -98,71 +112,54 @@ public partial class Player : MonoBehaviour
         }
     }
 
-    private void Forward(float vector)
+    private void SetMove(float vector)
     {
-        if (vector > 0)
-        {
-            PlayerAnimator.SetBool(_forwardHash, true);
-        }
-        else
-        {
-            PlayerAnimator.SetBool(_forwardHash, false);
-        }
-    }
-
-    private void Backward(float vector)
-    {
-        if (vector < 0)
-        {
-            PlayerAnimator.SetBool(_backwardHash, true);
-        }
-        else
-        {
-            PlayerAnimator.SetBool(_backwardHash, false);
-        }
+        PlayerAnimator.SetBool(_forwardHash, vector > 0);
+        PlayerAnimator.SetBool(_backwardHash, vector < 0);
     }
 
     private void Thrust()
     {
-        if (CurrentPlayerEvent is PlayerEvent.Idle or PlayerEvent.Forward or PlayerEvent.Backward)
+        if (IsIn(CurrentPlayerEvent, PlayerEvent.Idle, PlayerEvent.Forward, PlayerEvent.Backward))
         {
             PlayerAnimator.SetTrigger(_thrustHash);
             CameraEffect.ShakeHorizontal(1, .5f, .4f);
         }
     }
 
-    private void Swing(AnimatorStateInfo animatorStateInfo)
+    private void Swing()
     {
-        if (animatorStateInfo.IsName(THRUST_ANIMATION_NAME) && animatorStateInfo.normalizedTime >= THRUST_SWING_POINT)
+        if (CurrentPlayerEvent is PlayerEvent.ThrustSwing)
         {
             PlayerAnimator.SetTrigger(_swingHash);
             CameraEffect.ShakeHorizontal(1, .5f, .4f);
 
-            SwingFlipFlagOn();
+            _slideTime = SLIDE_TIME;
+            _swingFlipingFlag = true;
         }
     }
 
-    private void Missile(AnimatorStateInfo animatorStateInfo)
+    private void Missile()
     {
-        if (animatorStateInfo.IsName(SWING_ANIMATION_NAME) && animatorStateInfo.normalizedTime >= SWING_MISSILE_POINT)
+        if (CurrentPlayerEvent is PlayerEvent.SwingMissile)
         {
             PlayerAnimator.SetTrigger(_missileHash);
             CameraEffect.ShakeVertical(1, .5f, .4f);
         }
     }
 
-    private void Skill(AnimatorStateInfo animatorStateInfo)
+    private void Skill()
     {
-        if (animatorStateInfo.IsName(SWING_ANIMATION_NAME) && animatorStateInfo.normalizedTime >= SWING_SKILL_POINT)
+        if (CurrentPlayerEvent is PlayerEvent.SwingSkill)
         {
             PlayerAnimator.SetTrigger(_skillHash);
             CameraEffect.Earthquake(.5f, 1, 5, 0);
         }
     }
 
-    private void Spell(AnimatorStateInfo animatorStateInfo)
+    private void Spell()
     {
-        if (animatorStateInfo.IsName(SKILL_ANIMATION_NAME) && animatorStateInfo.normalizedTime >= SKILL_SPELL_POINT)
+        if (CurrentPlayerEvent is PlayerEvent.SkillSpell)
         {
             PlayerAnimator.SetTrigger(_spellHash);
             CameraEffect.ShakeVertical(1.5f, 2, .4f);
@@ -173,12 +170,15 @@ public partial class Player : MonoBehaviour
 
     private void Chant()
     {
-        if (_chargeTime >= 3)
+        if (_chargeTime >= CHARGE_TIME)
         {
             PlayerAnimator.SetTrigger(_sSKillHash);
             ChargeVFX.Active();
 
-            ChantFlagOn();
+            CurrentPlayerEvent = PlayerEvent.Chant;
+
+            _chargeTime = 0;
+            _chantTime = CHANT_TIME;
 
             CameraEffect.ShakeBoth(.5f, 5);
         }

@@ -1,40 +1,49 @@
 ﻿using UnityEngine;
-using static UnityEngine.Time;
+using static Common;
+using static UnityEngine.Space;
 
 public partial class Player : MonoBehaviour
 {
-    private void GetPlayerEvent(AnimatorStateInfo animatorStateInfo) => CurrentPlayerEvent = animatorStateInfo.IsName(IDLE_ANIMATION_NAME)
-        ? PlayerEvent.Idle
-        : animatorStateInfo.IsName(FORWARD_ANIMATION_NAME)
-        ? PlayerEvent.Forward
-        : animatorStateInfo.IsName(BACKWARD_ANIMATION_NAME)
-        ? PlayerEvent.Backward
-        : animatorStateInfo.IsName(THRUST_ANIMATION_NAME)
-            ? animatorStateInfo.normalizedTime >= THRUST_SWING_POINT ? PlayerEvent.ThrustSwing : PlayerEvent.Thrush
-        : animatorStateInfo.IsName(SWING_ANIMATION_NAME)
-            ? animatorStateInfo.normalizedTime >= SWING_SKILL_POINT ? PlayerEvent.SwingSkill
-            : animatorStateInfo.normalizedTime >= SWING_MISSILE_POINT ? PlayerEvent.SwingMissile : PlayerEvent.Swing
-        : animatorStateInfo.IsName(SKILL_ANIMATION_NAME)
-            ? animatorStateInfo.normalizedTime >= SKILL_SPELL_POINT ? PlayerEvent.SkillSpell : PlayerEvent.Skill
-        : animatorStateInfo.IsName(SPELL_ANIMATION_NAME)
-        ? PlayerEvent.Spell
-        : animatorStateInfo.IsName(CHANT_ANIMATION_NAME)
-        ? PlayerEvent.Chant
-        : animatorStateInfo.IsName(GUARD_ANIMATION_NAME)
-        ? PlayerEvent.Guard
-        : animatorStateInfo.IsName(TAUNT_ANIMATION_NAME)
-        ? PlayerEvent.Taunt
-        : animatorStateInfo.IsName(DAMAGE_ANIMATION_NAME)
-        ? PlayerEvent.Damage
-        : animatorStateInfo.IsName(DYING_ANIMATION_NAME)
-        ? PlayerEvent.Dying
-        : animatorStateInfo.IsName(DEAD_ANIMATION_NAME) ? PlayerEvent.Dead : PlayerEvent.None;
+    private void GetPlayerEvent(AnimatorStateInfo animatorStateInfo)
+    {
+        if (CurrentPlayerEvent is not PlayerEvent.Flash and not PlayerEvent.Jump)
+        {
+            CurrentPlayerEvent = animatorStateInfo.IsName(IDLE_ANIMATION_NAME)
+                ? PlayerEvent.Idle
+                : animatorStateInfo.IsName(FORWARD_ANIMATION_NAME)
+                ? PlayerEvent.Forward
+                : animatorStateInfo.IsName(BACKWARD_ANIMATION_NAME)
+                ? PlayerEvent.Backward
+                : animatorStateInfo.IsName(THRUST_ANIMATION_NAME)
+                    ? animatorStateInfo.normalizedTime >= THRUST_SWING_POINT ? PlayerEvent.ThrustSwing : PlayerEvent.Thrush
+                : animatorStateInfo.IsName(SWING_ANIMATION_NAME)
+                    ? animatorStateInfo.normalizedTime >= SWING_SKILL_POINT ? PlayerEvent.SwingSkill
+                    : animatorStateInfo.normalizedTime >= SWING_MISSILE_POINT ? PlayerEvent.SwingMissile : PlayerEvent.Swing
+                : animatorStateInfo.IsName(MISSILE_ANIMATION_NAME)
+                ? PlayerEvent.Missile
+                : animatorStateInfo.IsName(SKILL_ANIMATION_NAME)
+                    ? animatorStateInfo.normalizedTime >= SKILL_SPELL_POINT ? PlayerEvent.SkillSpell : PlayerEvent.Skill
+                : animatorStateInfo.IsName(SPELL_ANIMATION_NAME)
+                ? PlayerEvent.Spell
+                : animatorStateInfo.IsName(CHANT_ANIMATION_NAME)
+                    ? animatorStateInfo.normalizedTime >= 1 ? PlayerEvent.Jump : PlayerEvent.Chant
+                : animatorStateInfo.IsName(GUARD_ANIMATION_NAME)
+                ? PlayerEvent.Guard
+                : animatorStateInfo.IsName(TAUNT_ANIMATION_NAME)
+                ? PlayerEvent.Taunt
+                : animatorStateInfo.IsName(DAMAGE_ANIMATION_NAME)
+                ? PlayerEvent.Damage
+                : animatorStateInfo.IsName(DYING_ANIMATION_NAME)
+                ? PlayerEvent.Dying
+                : animatorStateInfo.IsName(DEAD_ANIMATION_NAME) ? PlayerEvent.Dead : PlayerEvent.None;
+        }
+    }
 
     private void Moving(float x) => _rb2d.linearVelocityX = x * SpeedMove;
 
-    private void Flashing(float x) => transform.position = new Vector3(transform.position.x + x / FLASH_SPEED, transform.position.y);
+    private void Flashing(float x) => transform.Translate(new Vector3(x / FLASH_SPEED, 0, 0), World);
 
-    private int Facing() => PlayerSR.flipX ? 1 : -1;
+    private int Facing() => PlayerSR.flipX ? VECTOR_RIGHT : VECTOR_LEFT;
 
     private void Flipping()
     {
@@ -58,11 +67,9 @@ public partial class Player : MonoBehaviour
 
     private void SlidingAndFlipping(int facing)
     {
-        if (_slideTime > 0)
+        if (TickDown(ref _slideTime))
         {
             Sliding(facing);
-
-            _slideTime -= deltaTime;
         }
         else
         {
@@ -71,59 +78,54 @@ public partial class Player : MonoBehaviour
             if (_swingFlipingFlag)
             {
                 Flipping();
-                SwingFlipFlagOff();
+
+                _swingFlipingFlag = false;
             }
         }
     }
 
-    private void Chanting(int facing)
+    private void Chanting()
     {
-        if (_chantTime > 0)
+        if (!TickDown(ref _chantTime))
         {
-            _chantTime -= deltaTime;
-        }
-        else
-        {
-            ChantFlagOff();
-
             ChargeVFX.Deactive();
 
-            JumpFlagOn();
+            CurrentPlayerEvent = PlayerEvent.Jump;
+
+            _jumpTime = JUMP_TIME;
+            _peakJumpTime = PEAK_JUMP_TIME;
         }
     }
 
     private void Jumping(int facing)
     {
-        if (_jumpTime > 0)
+        if (TickDown(ref _jumpTime))
         {
             _rb2d.linearVelocityX = JUMP_SPEED_RATE * SpeedMove * facing;
             _rb2d.linearVelocityY = _jumpTime >= _peakJumpTime ? SpeedMove : -SpeedMove;
-
-            _jumpTime -= deltaTime;
         }
         else
         {
-            JumpFlagOff();
+            CurrentPlayerEvent = PlayerEvent.Spell;
 
             CameraEffect.ShakeVertical(3, 2);
             CameraEffect.Earthquake(.5f, .5f, 5, 0);
             BladeVFX.Active();
 
-            BladeFlagOn();
+            _bladeTime = BLADE_TIME;
+            _bladingFlag = true;
         }
     }
 
     private void Blading(int facing)
     {
-        if (_bladeTime > 0)
+        if (TickDown(ref _bladeTime))
         {
-            BladeVFX.transform.position = new Vector3(BladeVFX.transform.position.x + facing / FLASH_SPEED, BladeVFX.transform.position.y);
-
-            _bladeTime -= deltaTime;
+            BladeVFX.transform.Translate(new Vector3(facing / FLASH_SPEED, 0, 0), World);
         }
         else
         {
-            BladeFlagOff();
+            _bladingFlag = false;
 
             BladeVFX.Deactive();
             BladeVFX.ResetPositionAndRotation(new Vector3(0, .8f));
