@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using static Common;
 using static UnityEngine.Space;
+using static UnityEngine.Vector3;
 
 public partial class Player : MonoBehaviour
 {
@@ -41,7 +42,7 @@ public partial class Player : MonoBehaviour
 
     private void Moving(float x) => _rb2d.linearVelocityX = x * SpeedMove;
 
-    private void Flashing(float x) => transform.Translate(new Vector3(x / FLASH_SPEED, 0, 0), World);
+    private void Flashing(float x) => transform.Translate(right * (x / FLASH_SPEED), World);
 
     private int Facing() => PlayerSR.flipX ? VECTOR_RIGHT : VECTOR_LEFT;
 
@@ -121,7 +122,7 @@ public partial class Player : MonoBehaviour
     {
         if (TickDown(ref _bladeTime))
         {
-            BladeVFX.transform.Translate(new Vector3(facing / FLASH_SPEED, 0, 0), World);
+            BladeVFX.transform.Translate(right * (facing / FLASH_SPEED), World);
         }
         else
         {
