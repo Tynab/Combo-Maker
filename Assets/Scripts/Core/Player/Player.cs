@@ -28,6 +28,8 @@ public partial class Player : MonoBehaviour
 
         Movement(x, vector);
         Flash(x);
+        Taunt();
+        Guard();
         Combo(facing);
         SSkill(facing);
     }

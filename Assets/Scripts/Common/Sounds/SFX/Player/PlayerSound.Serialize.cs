@@ -7,4 +7,5 @@ public partial class PlayerSound : MonoBehaviour
     [SerializeField] private AudioClip MissileSFX;
     [SerializeField] private AudioClip SkillSFX;
     [SerializeField] private AudioClip SpellSFX;
+    [SerializeField] private AudioClip TauntSFX;
 }

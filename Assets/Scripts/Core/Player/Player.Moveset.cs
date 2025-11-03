@@ -8,7 +8,7 @@ public partial class Player : MonoBehaviour
 {
     private void Movement(float x, float vector)
     {
-        if (IsIn(CurrentPlayerEvent, PlayerEvent.Idle, PlayerEvent.Forward, PlayerEvent.Backward))
+        if (CurrentPlayerEvent.IsIn(PlayerEvent.Idle, PlayerEvent.Forward, PlayerEvent.Backward))
         {
             SetMove(vector);
             Moving(x);
@@ -17,7 +17,7 @@ public partial class Player : MonoBehaviour
 
     private void Flash(float x)
     {
-        if (IsIn(CurrentPlayerEvent,
+        if (CurrentPlayerEvent.IsIn(
             PlayerEvent.Idle,
             PlayerEvent.Forward,
             PlayerEvent.Backward,
@@ -30,7 +30,8 @@ public partial class Player : MonoBehaviour
             PlayerEvent.SwingMissile,
             PlayerEvent.SwingSkill,
             PlayerEvent.SkillSpell,
-            PlayerEvent.Jump))
+            PlayerEvent.Jump
+        ))
         {
             _flashVector = x > 0 ? VECTOR_RIGHT : x < 0 ? VECTOR_LEFT : 0;
 
@@ -58,6 +59,39 @@ public partial class Player : MonoBehaviour
 
                 _flashVector = 0;
             }
+        }
+    }
+
+    private void Taunt()
+    {
+        if (CurrentPlayerEvent.IsIn(PlayerEvent.Idle, PlayerEvent.Forward, PlayerEvent.Backward))
+        {
+            if (GetKeyDown(I))
+            {
+                CurrentPlayerEvent = PlayerEvent.Taunt;
+
+                PlayerAnimator.SetTrigger(_tauntHash);
+            }
+        }
+    }
+
+    private void Guard()
+    {
+        if (CurrentPlayerEvent.IsIn(PlayerEvent.Idle, PlayerEvent.Forward, PlayerEvent.Backward))
+        {
+            if (GetKey(K))
+            {
+                CurrentPlayerEvent = PlayerEvent.Guard;
+
+                PlayerAnimator.SetBool(_defendHash, true);
+            }
+        }
+
+        if (GetKeyUp(K))
+        {
+            CurrentPlayerEvent = PlayerEvent.Idle;
+
+            PlayerAnimator.SetBool(_defendHash, false);
         }
     }
 
@@ -120,7 +154,7 @@ public partial class Player : MonoBehaviour
 
     private void Thrust()
     {
-        if (IsIn(CurrentPlayerEvent, PlayerEvent.Idle, PlayerEvent.Forward, PlayerEvent.Backward))
+        if (CurrentPlayerEvent.IsIn(PlayerEvent.Idle, PlayerEvent.Forward, PlayerEvent.Backward))
         {
             PlayerAnimator.SetTrigger(_thrustHash);
             CameraEffect.ShakeHorizontal(1, .5f, .4f);

@@ -11,6 +11,10 @@ public partial class Player : MonoBehaviour
     private static readonly int _missileHash = StringToHash("attack3b");
     private static readonly int _spellHash = StringToHash("attack4");
     private static readonly int _sSKillHash = StringToHash("attack");
+    private static readonly int _defendHash = StringToHash("defend");
+    private static readonly int _tauntHash = StringToHash("taunt");
+    private static readonly int _damageHash = StringToHash("damage");
+    private static readonly int _dieHash = StringToHash("die");
 
     private Rigidbody2D _rb2d;
 

@@ -7,7 +7,7 @@ public partial class Player : MonoBehaviour
 {
     private void GetPlayerEvent(AnimatorStateInfo animatorStateInfo)
     {
-        if (CurrentPlayerEvent is not PlayerEvent.Flash and not PlayerEvent.Jump)
+        if (CurrentPlayerEvent.IsNotIn(PlayerEvent.Flash, PlayerEvent.Jump))
         {
             CurrentPlayerEvent = animatorStateInfo.IsName(IDLE_ANIMATION_NAME)
                 ? PlayerEvent.Idle

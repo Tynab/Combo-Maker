@@ -26,6 +26,8 @@ public partial class CameraEffect : MonoBehaviour
         }
 
         _moveCoroutine = StartCoroutine(MoveVerticalRoutine(deltaY, duration, delay, resetAtEnd, curve));
+
+        gameObject.ResetPositionAndRotation();
     }
 
     public void MoveUpDown(float deltaY, float duration, float delay = 0, float holdAtTop = 0, AnimationCurve curve = null)
@@ -36,5 +38,31 @@ public partial class CameraEffect : MonoBehaviour
         }
 
         _moveCoroutine = StartCoroutine(MoveUpDownRoutine(deltaY, duration, delay, holdAtTop, curve));
+
+        gameObject.ResetPositionAndRotation();
+    }
+
+    public void MoveHorizontalBy(float deltaX, float duration, float delay = 0, bool resetAtEnd = false, AnimationCurve curve = null)
+    {
+        if (_moveCoroutine is not null)
+        {
+            StopCoroutine(_moveCoroutine);
+        }
+
+        _moveCoroutine = StartCoroutine(MoveHorizontalRoutine(deltaX, duration, delay, resetAtEnd, curve));
+
+        gameObject.ResetPositionAndRotation();
+    }
+
+    public void MoveLeftRight(float deltaX, float duration, float delay = 0, float holdAtRight = 0, AnimationCurve curve = null)
+    {
+        if (_moveCoroutine is not null)
+        {
+            StopCoroutine(_moveCoroutine);
+        }
+
+        _moveCoroutine = StartCoroutine(MoveLeftRightRoutine(deltaX, duration, delay, holdAtRight, curve));
+
+        gameObject.ResetPositionAndRotation();
     }
 }

@@ -13,4 +13,6 @@ public partial class PlayerSound : MonoBehaviour
     public void OnSkill() => _audioSource.PlayOneShot(SkillSFX);
 
     public void OnSpell() => _audioSource.PlayOneShot(SpellSFX);
+
+    public void OnTaunt() => _audioSource.PlayOneShot(TauntSFX);
 }

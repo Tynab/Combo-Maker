@@ -9,7 +9,9 @@ public static class Common
 {
     public const string AXIS_HORIZONTAL = "Horizontal";
 
-    public static bool IsIn<TEnum>(TEnum e, params TEnum[] set) where TEnum : Enum => IndexOf(set, e) >= 0;
+    public static bool IsIn<TEnum>(this TEnum e, params TEnum[] set) where TEnum : Enum => IndexOf(set, e) >= 0;
+
+    public static bool IsNotIn<TEnum>(this TEnum e, params TEnum[] set) where TEnum : Enum => IndexOf(set, e) < 0;
 
     public static bool TickDown(ref float t)
     {

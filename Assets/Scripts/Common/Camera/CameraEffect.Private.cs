@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using UnityEngine;
-using static Common;
 using static UnityEngine.AnimationCurve;
 using static UnityEngine.Mathf;
 using static UnityEngine.Quaternion;
@@ -31,12 +30,12 @@ public partial class CameraEffect : MonoBehaviour
             var nx = PerlinNoise(seedX, time * freq) * 2 - 1;
             var ny = PerlinNoise(seedY, time * freq) * 2 - 1;
 
-            if (IsIn(axis, ShakeAxis.Horizontal, ShakeAxis.Both))
+            if (axis.IsIn(ShakeAxis.Horizontal, ShakeAxis.Both))
             {
                 p.x += nx * amp * env;
             }
 
-            if (IsIn(axis, ShakeAxis.Vertical, ShakeAxis.Both))
+            if (axis.IsIn(ShakeAxis.Vertical, ShakeAxis.Both))
             {
                 p.y += ny * amp * env;
             }
@@ -172,6 +171,90 @@ public partial class CameraEffect : MonoBehaviour
         }
 
         yield return StartCoroutine(MoveVerticalRoutine(-deltaY, duration, 0, resetAtEnd: false, curve));
+
+        _moveCoroutine = null;
+    }
+
+    private IEnumerator MoveHorizontalRoutine(float deltaX, float duration, float delay, bool resetAtEnd, AnimationCurve curve)
+    {
+        if (delay > 0)
+        {
+            yield return new WaitForSecondsRealtime(delay);
+        }
+
+        if (duration <= 0 || Abs(deltaX) <= 0)
+        {
+            yield break;
+        }
+
+        var c = curve ?? EaseInOut(0, 0, 1, 1);
+        var startBase = _baseLocalPosition;
+        var targetBase = startBase + new Vector3(deltaX, 0, 0);
+        var t = 0f;
+
+        while (t < duration)
+        {
+            _baseLocalPosition = Lerp(startBase, targetBase, c.Evaluate(t / duration));
+
+            if (_shakeCoroutine is null)
+            {
+                transform.localPosition = _baseLocalPosition;
+            }
+
+            t += unscaledDeltaTime;
+
+            yield return null;
+        }
+
+        _baseLocalPosition = targetBase;
+
+        if (_shakeCoroutine is null)
+        {
+            transform.localPosition = _baseLocalPosition;
+        }
+
+        if (resetAtEnd)
+        {
+            t = 0;
+
+            var backStart = _baseLocalPosition;
+            var backTarget = startBase;
+
+            while (t < duration)
+            {
+                _baseLocalPosition = Lerp(backStart, backTarget, c.Evaluate(t / duration));
+
+                if (_shakeCoroutine is null)
+                {
+                    transform.localPosition = _baseLocalPosition;
+                }
+
+                t += unscaledDeltaTime;
+
+                yield return null;
+            }
+
+            _baseLocalPosition = backTarget;
+
+            if (_shakeCoroutine is null)
+            {
+                transform.localPosition = _baseLocalPosition;
+            }
+        }
+
+        _moveCoroutine = null;
+    }
+
+    private IEnumerator MoveLeftRightRoutine(float deltaX, float duration, float delay, float holdAtRight, AnimationCurve curve)
+    {
+        yield return StartCoroutine(MoveHorizontalRoutine(deltaX, duration, delay, resetAtEnd: false, curve));
+
+        if (holdAtRight > 0)
+        {
+            yield return new WaitForSecondsRealtime(holdAtRight);
+        }
+
+        yield return StartCoroutine(MoveHorizontalRoutine(-deltaX, duration, 0, resetAtEnd: false, curve));
 
         _moveCoroutine = null;
     }
